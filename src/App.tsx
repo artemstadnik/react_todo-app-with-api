@@ -143,8 +143,9 @@ export const App: React.FC = () => {
       .then(updatedTodo => {
         setTodos(curr => curr.map(t => (t.id === todo.id ? updatedTodo : t)));
       })
-      .catch(() => {
+      .catch(error => {
         setErrorMessage('Unable to update a todo');
+        throw error;
       })
       .finally(() => {
         setLoadingTodoIds(ids => ids.filter(id => id !== todo.id));
