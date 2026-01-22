@@ -2,46 +2,41 @@ import React from 'react';
 import { Todo } from '../types/Todo';
 import { TodoItem } from './TodoItem';
 
-interface Props {
+type Props = {
   todos: Todo[];
   tempTodo: Todo | null;
-  deletingTodoIds: number[];
-  onDeleteTodo: (todoId: number) => void;
-  updatingTodoIds: number[];
-  onToggleTodo: (todoId: number) => void;
-  onUpdateTodoTitle: (todoId: number, newTitle: string) => Promise<void>;
-}
+  onDelete: (id: number) => void;
+  deleteTodoIds: number[];
+  onUpdate: (todo: Todo) => Promise<void>;
+  onToggle: (id: number) => void;
+  loadingTodoIds: number[];
+};
 
 export const TodoList: React.FC<Props> = ({
   todos,
   tempTodo,
-  deletingTodoIds,
-  onDeleteTodo,
-  updatingTodoIds,
-  onToggleTodo,
-  onUpdateTodoTitle,
+  onDelete,
+  deleteTodoIds,
+  onUpdate,
+  onToggle,
+  loadingTodoIds,
 }) => {
-  if (todos.length === 0 && !tempTodo) {
-    return null;
-  }
-
   return (
     <section className="todoapp__main" data-cy="TodoList">
       {todos.map(todo => (
         <TodoItem
-          key={todo.id}
           todo={todo}
-          isDeleting={deletingTodoIds.includes(todo.id)}
-          onDelete={() => onDeleteTodo(todo.id)}
-          isUpdating={updatingTodoIds.includes(todo.id)}
-          onToggle={() => onToggleTodo(todo.id)}
-          onUpdateTitle={newTitle => onUpdateTodoTitle(todo.id, newTitle)}
+          key={todo.id}
+          onDeleteTodo={onDelete}
+          loading={
+            deleteTodoIds.includes(todo.id) || loadingTodoIds.includes(todo.id)
+          }
+          onUpdateTodo={onUpdate}
+          onToggleTodo={onToggle}
         />
       ))}
 
-      {tempTodo && (
-        <TodoItem key={tempTodo.id} todo={tempTodo} isDeleting={false} isTemp />
-      )}
+      {tempTodo && <TodoItem todo={tempTodo} loading={true} />}
     </section>
   );
 };

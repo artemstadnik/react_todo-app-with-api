@@ -7,22 +7,16 @@ export const getTodos = () => {
   return client.get<Todo[]>(`/todos?userId=${USER_ID}`);
 };
 
-export const deleteTodo = (todoId: number) => {
-  return client.delete(`/todos/${todoId}`);
-};
-
-export const createTodo = ({
-  title,
-  completed,
-}: {
-  title: string;
-  completed: boolean;
-}) => {
+export const addTodos = (title: string) => {
   return client.post<Todo>('/todos', {
     userId: USER_ID,
     title,
-    completed,
+    completed: false,
   });
+};
+
+export const deleteTodo = (id: number) => {
+  return client.delete(`/todos/${id}`);
 };
 
 export const updateTodo = (todo: Todo) => {

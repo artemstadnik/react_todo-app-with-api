@@ -1,26 +1,30 @@
 import React from 'react';
 import classNames from 'classnames';
 
-interface Props {
-  message: string;
-  onHide: () => void;
-}
+type Props = {
+  errorMessage: string;
+  setErrorMessage: (errorMessage: string) => void;
+};
 
-export const ErrorNotification: React.FC<Props> = ({ message, onHide }) => {
+export const ErrorNotification: React.FC<Props> = ({
+  errorMessage,
+  setErrorMessage,
+}) => {
   return (
     <div
       data-cy="ErrorNotification"
-      className={classNames('notification is-danger error-notification', {
-        hidden: !message,
-      })}
+      className={classNames(
+        'notification is-danger is-light has-text-weight-normal',
+        { hidden: !errorMessage },
+      )}
     >
       <button
         data-cy="HideErrorButton"
         type="button"
         className="delete"
-        onClick={onHide}
+        onClick={() => setErrorMessage('')}
       />
-      {message}
+      {errorMessage}
     </div>
   );
 };

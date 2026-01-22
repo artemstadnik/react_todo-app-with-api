@@ -1,162 +1,132 @@
-import React, { useEffect, useRef, useState } from 'react';
-import classNames from 'classnames';
-import { Todo } from '../types/Todo';
+/* eslint-disable jsx-a11y/label-has-associated-control */
+/* eslint-disable jsx-a11y/control-has-associated-label */
 
-interface Props {
+import React, { useEffect, useRef, useState } from 'react';
+import { Todo } from '../types/Todo';
+import classNames from 'classnames';
+
+type Props = {
   todo: Todo;
-  isDeleting: boolean;
-  isUpdating?: boolean;
-  onDelete?: () => Promise<void> | void;
-  isTemp?: boolean;
-  onToggle?: () => void;
-  onUpdateTitle?: (newTitle: string) => Promise<void>;
-}
+  onDeleteTodo?: (id: number) => void;
+  loading?: boolean;
+  onUpdateTodo?: (todo: Todo) => Promise<void>;
+  onToggleTodo?: (id: number) => void;
+};
 
 export const TodoItem: React.FC<Props> = ({
   todo,
-  isDeleting,
-  isUpdating = false,
-  onDelete,
-  isTemp = false,
-  onToggle,
-  onUpdateTitle,
+  loading,
+  onDeleteTodo = () => {},
+  onUpdateTodo = () => Promise.resolve(),
+  onToggleTodo = () => {},
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(todo.title);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [editTitle, setEditTitle] = useState(todo.title);
 
-  useEffect(() => {
-    setTitle(todo.title);
-  }, [todo.title]);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEditing) {
-      inputRef.current?.focus();
+      editInputRef.current?.focus();
     }
   }, [isEditing]);
 
-  const handleEditStart = () => {
-    if (isTemp || isDeleting || isUpdating) {
-      return;
-    }
+  const saveChanges = () => {
+    const cleanTitle = editTitle.trim();
 
-    setIsEditing(true);
-    setTitle(todo.title);
-  };
-
-  const handleCancelEditing = () => {
-    setTitle(todo.title);
-    setIsEditing(false);
-  };
-
-  const handleSave = () => {
-    if (!isEditing) {
-      return;
-    }
-
-    const trimmedTitle = title.trim();
-
-    if (trimmedTitle === todo.title) {
-      handleCancelEditing();
-
-      return;
-    }
-
-    if (!trimmedTitle) {
-      const deletePromise = onDelete?.();
-
-      if (deletePromise) {
-        deletePromise.catch(() => {});
-      }
-
-      return;
-    }
-
-    const updatePromise = onUpdateTitle?.(trimmedTitle);
-
-    if (!updatePromise) {
+    if (cleanTitle === todo.title) {
       setIsEditing(false);
 
       return;
     }
 
-    updatePromise.then(() => setIsEditing(false)).catch(() => {});
+    if (!cleanTitle) {
+      onDeleteTodo(todo.id);
+
+      return;
+    }
+
+    onUpdateTodo({ ...todo, title: cleanTitle })
+      .then(() => {
+        setIsEditing(false);
+      })
+      .catch(() => {
+        editInputRef.current?.focus();
+      });
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      handleCancelEditing();
+      setEditTitle(todo.title);
+      setIsEditing(false);
     }
+  };
 
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      handleSave();
-    }
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    saveChanges();
   };
 
   return (
     <div
       data-cy="Todo"
-      className={classNames('todo', { completed: todo.completed })}
+      className={classNames('todo', {
+        completed: todo.completed,
+      })}
     >
-      {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label className="todo__status-label">
         <input
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
+          aria-label="Todo status"
           checked={todo.completed}
-          disabled={isTemp || isDeleting || isUpdating}
-          onChange={onToggle}
+          onChange={() => onToggleTodo(todo.id)}
         />
       </label>
 
       {isEditing ? (
-        <form
-          onSubmit={event => {
-            event.preventDefault();
-            handleSave();
-          }}
-        >
+        <form onSubmit={handleSubmit}>
           <input
             data-cy="TodoTitleField"
-            className="todo__title-field"
             type="text"
-            value={title}
-            onChange={event => setTitle(event.target.value)}
-            onBlur={handleSave}
-            onKeyDown={handleKeyDown}
-            ref={inputRef}
+            className="todo__title-field"
+            ref={editInputRef}
+            value={editTitle}
+            onChange={e => setEditTitle(e.target.value)}
+            onBlur={saveChanges}
+            onKeyUp={handleKeyUp}
           />
         </form>
       ) : (
-        <>
-          <span
-            data-cy="TodoTitle"
-            className="todo__title"
-            onDoubleClick={handleEditStart}
-          >
-            {todo.title}
-          </span>
+        <span
+          data-cy="TodoTitle"
+          className="todo__title"
+          onDoubleClick={() => {
+            setIsEditing(true);
+            setEditTitle(todo.title);
+          }}
+        >
+          {todo.title}
+        </span>
+      )}
 
-          {!isTemp && (
-            <button
-              type="button"
-              className="todo__remove"
-              data-cy="TodoDelete"
-              onClick={onDelete}
-              disabled={isDeleting || isUpdating}
-            >
-              ×
-            </button>
-          )}
-        </>
+      {!isEditing && (
+        <button
+          type="button"
+          className="todo__remove"
+          data-cy="TodoDelete"
+          aria-label="Delete todo"
+          onClick={() => onDeleteTodo(todo.id)}
+        >
+          ×
+        </button>
       )}
 
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': isDeleting || isTemp || isUpdating,
+          'is-active': loading,
         })}
       >
         <div className="modal-background has-background-white-ter" />
