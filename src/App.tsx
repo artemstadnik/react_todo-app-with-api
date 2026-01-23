@@ -11,8 +11,9 @@ import {
 } from './api/todos';
 import { Todo } from './types/Todo';
 import { FilterStatus } from './types/FilterStatus';
+import { ErrorMessage } from './types/ErrorMessage';
 import { Footer } from './components/Footer';
-import { Header } from './components/Header';
+import { TodoForm } from './components/TodoForm';
 import { ErrorNotification } from './components/ErrorNotification';
 import { TodoList } from './components/TodoList';
 
@@ -27,28 +28,15 @@ export const App: React.FC = () => {
   const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
 
   useEffect(() => {
-    setErrorMessage('');
     setLoading(true);
 
     getTodos()
       .then(setTodos)
       .catch(() => {
-        setErrorMessage('Unable to load todos');
+        setErrorMessage(ErrorMessage.LoadTodos);
       })
       .finally(() => setLoading(false));
   }, []);
-
-  useEffect(() => {
-    if (!errorMessage) {
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setErrorMessage('');
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [errorMessage]);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -76,7 +64,7 @@ export const App: React.FC = () => {
     const cleanTitle = title.trim();
 
     if (!cleanTitle) {
-      setErrorMessage('Title should not be empty');
+      setErrorMessage(ErrorMessage.EmptyTitle);
 
       return;
     }
@@ -98,7 +86,7 @@ export const App: React.FC = () => {
         setTitle('');
       })
       .catch(() => {
-        setErrorMessage('Unable to add a todo');
+        setErrorMessage(ErrorMessage.AddTodo);
       })
       .finally(() => {
         setLoading(false);
@@ -119,7 +107,7 @@ export const App: React.FC = () => {
         inputRef.current?.focus();
       })
       .catch(() => {
-        setErrorMessage('Unable to delete a todo');
+        setErrorMessage(ErrorMessage.DeleteTodo);
       })
       .finally(() => {
         setDeleteTodoIds(currentsIds =>
@@ -144,7 +132,7 @@ export const App: React.FC = () => {
         setTodos(curr => curr.map(t => (t.id === todo.id ? updatedTodo : t)));
       })
       .catch(error => {
-        setErrorMessage('Unable to update a todo');
+        setErrorMessage(ErrorMessage.UpdateTodo);
         throw error;
       })
       .finally(() => {
@@ -180,7 +168,7 @@ export const App: React.FC = () => {
     )
       .then(results => {
         if (results.some(r => r.status === 'rejected')) {
-          setErrorMessage('Unable to update some todos');
+          setErrorMessage(ErrorMessage.UpdateSomeTodos);
         }
 
         setTodos(curr =>
@@ -201,13 +189,12 @@ export const App: React.FC = () => {
       <h1 className="todoapp__title">todos</h1>
 
       <div className="todoapp__content">
-        <Header
+        <TodoForm
           todos={todos}
           title={title}
           setTitle={setTitle}
           handleAddTodo={handleAddTodo}
           loading={loading}
-          setLoading={setLoading}
           inputRef={inputRef}
           onToggleAll={handleToggleAll}
         />

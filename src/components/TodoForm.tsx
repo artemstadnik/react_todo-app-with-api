@@ -8,16 +8,14 @@ type Props = {
   setTitle: (title: string) => void;
   handleAddTodo: (e: React.FormEvent) => void;
   loading: boolean;
-  setLoading: (loading: boolean) => void;
   inputRef: React.RefObject<HTMLInputElement>;
   onToggleAll: () => void;
 };
 
-export const Header: React.FC<Props> = ({
+export const TodoForm: React.FC<Props> = ({
   todos,
   handleAddTodo,
   loading,
-  setLoading,
   title,
   setTitle,
   inputRef,
@@ -46,10 +44,7 @@ export const Header: React.FC<Props> = ({
           placeholder="What needs to be done?"
           ref={inputRef}
           value={title}
-          onChange={event => {
-            setTitle(event.target.value);
-            setLoading(false);
-          }}
+          onChange={event => setTitle(event.target.value)}
           disabled={loading}
         />
       </form>
