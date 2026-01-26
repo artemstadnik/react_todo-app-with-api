@@ -1,4 +1,5 @@
 export enum ErrorMessage {
+  Default = '',
   LoadTodos = 'Unable to load todos',
   AddTodo = 'Unable to add a todo',
   DeleteTodo = 'Unable to delete a todo',

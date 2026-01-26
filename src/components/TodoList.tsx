@@ -6,37 +6,30 @@ type Props = {
   todos: Todo[];
   tempTodo: Todo | null;
   onDelete: (id: number) => void;
-  deleteTodoIds: number[];
+  processingIds: number[];
   onUpdate: (todo: Todo) => Promise<void>;
   onToggle: (id: number) => void;
-  loadingTodoIds: number[];
 };
 
-export const TodoList: React.FC<Props> = ({
-  todos,
-  tempTodo,
-  onDelete,
-  deleteTodoIds,
-  onUpdate,
-  onToggle,
-  loadingTodoIds,
-}) => {
-  return (
-    <section className="todoapp__main" data-cy="TodoList">
-      {todos.map(todo => (
-        <TodoItem
-          todo={todo}
-          key={todo.id}
-          onDeleteTodo={onDelete}
-          loading={
-            deleteTodoIds.includes(todo.id) || loadingTodoIds.includes(todo.id)
-          }
-          onUpdateTodo={onUpdate}
-          onToggleTodo={onToggle}
-        />
-      ))}
+export const TodoList: React.FC<Props> = React.memo(
+  ({ todos, tempTodo, onDelete, processingIds, onUpdate, onToggle }) => {
+    return (
+      <section className="todoapp__main" data-cy="TodoList">
+        {todos.map(todo => (
+          <TodoItem
+            todo={todo}
+            key={todo.id}
+            onDeleteTodo={onDelete}
+            loading={processingIds.includes(todo.id)}
+            onUpdateTodo={onUpdate}
+            onToggleTodo={onToggle}
+          />
+        ))}
 
-      {tempTodo && <TodoItem todo={tempTodo} loading={true} />}
-    </section>
-  );
-};
+        {tempTodo && <TodoItem todo={tempTodo} loading={true} />}
+      </section>
+    );
+  },
+);
+
+TodoList.displayName = 'TodoList';
